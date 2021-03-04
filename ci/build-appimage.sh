@@ -13,6 +13,8 @@ fi
 BUILD_DIR="$(mktemp -d -p "$TEMP_BASE" pwndbg-build-XXXXXX)"
 
 cleanup () {
+    bash
+
     if [ -d "$BUILD_DIR" ]; then
         rm -rf "$BUILD_DIR"
     fi
@@ -33,6 +35,8 @@ wget -c https://github.com/TheAssassin/linuxdeploy/releases/download/continuous/
 
 chmod +x linuxdeploy-x86_64.AppImage
 chmod +x linuxdeploy-plugin-conda.sh
+
+dd if=/dev/zero of=linuxdeploy-x86_64.AppImage bs=1 count=3 seek=8 conv=notrunc
 
 export PIP_REQUIREMENTS="-r $REPO_ROOT/requirements.txt"
 ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin conda
@@ -134,7 +138,10 @@ for i in caps gdbinit.py ida_script.py LICENSE.md pwndbg ; do
 done
 
 # finally, we can build the AppImage
-VERSION="$(cd "$REPO_ROOT" && git describe --tags)"
+# we want to add some sort of "version" to the AppImage filename
+# however, pwndbg doesn't provide tags so far
+# therefore, a simple git commit hash will have to do
+VERSION="$(cd "$REPO_ROOT" && git rev-parse --short HEAD)"
 export VERSION
 
 # workaround: the gdb binaries lack a proper rpath, so we have to help linuxdeploy find the Python binaries
